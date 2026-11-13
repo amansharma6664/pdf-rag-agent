@@ -1,0 +1,31 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: pdf-rag-agent
+  datasource:
+    # Defaults match docker-compose.yml and a local MySQL with user root / password root.
+    # The database is created automatically if it does not exist.
+    url: "jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:pdf_rag}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:root}
+  jpa:
+    hibernate:
+      ddl-auto: update        # tables are created automatically
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 25MB
+
+app:
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+    embedding-model: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
+    chat-model: ${OPENAI_CHAT_MODEL:gpt-4o-mini}
+  rag:
+    chunk-size: 800       # characters per chunk
+    chunk-overlap: 150    # characters shared between neighbouring chunks
+    top-k: 4              # how many chunks are sent to the LLM as context

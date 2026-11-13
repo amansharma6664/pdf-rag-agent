@@ -1,0 +1,18 @@
+# secrets
+.env
+
+# backend
+backend/target/
+*.class
+*.log
+
+# frontend
+frontend/node_modules/
+frontend/dist/
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

@@ -1,0 +1,53 @@
+# Starts everything with one command:  docker compose up --build
+#   MySQL    -> stores documents, text chunks and embeddings
+#   backend  -> Spring Boot REST API (talks to OpenAI)
+#   frontend -> React app served by nginx
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: pdfrag-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: pdf_rag
+    ports:
+      - "3307:3306"           # 3307 on your machine, so it never clashes with a local MySQL
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: pdfrag-backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: pdf_rag
+      DB_USER: root
+      DB_PASSWORD: root
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_CHAT_MODEL: ${OPENAI_CHAT_MODEL:-gpt-4o-mini}
+      OPENAI_EMBEDDING_MODEL: ${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: pdfrag-frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
